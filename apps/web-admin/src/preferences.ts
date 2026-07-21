@@ -17,10 +17,15 @@ export const overridesPreferences = defineOverridesPreferences({
     defaultHomePath: WORKSPACE_HOME_PATH,
     enableRefreshToken: true,
     name: import.meta.env.VITE_APP_TITLE,
+   
+  },
+  "theme": {
+    "mode": "light"
   },
   copyright: appCopyrightPreferences,
 });
-
+{
+}
 // {
 //   "app": {
 //     "layout": "sidebar-mixed-nav"

@@ -1,10 +1,6 @@
 <script setup lang="ts">
-import { computed } from 'vue';
-
 import {
-  Button,
   Empty,
-  Space,
   Tag,
   TypographyParagraph,
 } from 'antdv-next';
@@ -19,10 +15,6 @@ interface Props {
 
 const props = defineProps<Props>();
 
-const emit = defineEmits<{
-  openProfile: [payload: { moduleKey: string; tabKey: string }];
-}>();
-
 const eventMetaMap: Record<
   ClientDeclarationApi.DeclarationFlowEventType,
   { color: string; label: string }
@@ -31,15 +23,6 @@ const eventMetaMap: Record<
   material_snapshot: { color: 'cyan', label: '材料快照' },
   replenishment: { color: 'red', label: '退回补件' },
   submit: { color: 'green', label: '提交记录' },
-};
-
-const materialStatusMap: Record<
-  ClientDeclarationApi.DeclarationMaterialSnapshotItem['checkStatus'],
-  { color: string; label: string }
-> = {
-  missing: { color: 'red', label: '缺失' },
-  partial: { color: 'orange', label: '部分满足' },
-  passed: { color: 'green', label: '已满足' },
 };
 
 const nodeStatusMap: Record<
@@ -53,29 +36,8 @@ const nodeStatusMap: Record<
   waiting: { color: 'gold', label: '待开始' },
 };
 
-const snapshotGroups = computed(() => {
-  const items = props.flow?.materialSnapshot.items ?? [];
-  return [
-    { key: 'missing' as const, items: items.filter((item) => item.checkStatus === 'missing') },
-    { key: 'partial' as const, items: items.filter((item) => item.checkStatus === 'partial') },
-    { key: 'passed' as const, items: items.filter((item) => item.checkStatus === 'passed') },
-  ].filter((group) => group.items.length > 0);
-});
-
-const snapshotSourceLabel = computed(() => {
-  const source = props.flow?.materialSnapshot.source;
-  return source === 'declaration_snapshot' ? '申报创建快照' : '最新材料检查';
-});
-
 function formatArray(values: string[]) {
   return values.length > 0 ? values.join('、') : '无';
-}
-
-function openProfile(item: ClientDeclarationApi.DeclarationMaterialSnapshotItem) {
-  emit('openProfile', {
-    moduleKey: item.moduleKey,
-    tabKey: item.tabKey,
-  });
 }
 </script>
 
@@ -133,7 +95,7 @@ function openProfile(item: ClientDeclarationApi.DeclarationMaterialSnapshotItem)
           <div class="declaration-flow-panel__section-head">
             <div>
               <h3>流程记录</h3>
-              <p>提交、审核、退回补件和材料快照的关键记录。</p>
+              <p>提交、审核和退回补件的关键记录。</p>
             </div>
           </div>
           <div class="declaration-flow-panel__events">
@@ -182,72 +144,6 @@ function openProfile(item: ClientDeclarationApi.DeclarationMaterialSnapshotItem)
         </div>
       </div>
 
-      <div class="declaration-flow-panel__section">
-        <div class="declaration-flow-panel__section-head">
-          <div>
-            <h3>材料快照</h3>
-            <p>
-              {{ snapshotSourceLabel }} · 准备度
-              {{ flow.materialSnapshot.readinessScore }} · 检查时间
-              {{ flow.materialSnapshot.checkedAt || '-' }}
-            </p>
-          </div>
-          <Tag>{{ flow.materialSnapshot.items.length }} 项</Tag>
-        </div>
-
-        <Empty
-          v-if="flow.materialSnapshot.items.length === 0"
-          description="暂无材料快照"
-        />
-        <div v-else class="declaration-flow-panel__snapshot-groups">
-          <div
-            v-for="group in snapshotGroups"
-            :key="group.key"
-            class="declaration-flow-panel__snapshot-group"
-          >
-            <div class="declaration-flow-panel__snapshot-title">
-              <strong>{{ materialStatusMap[group.key].label }}</strong>
-              <Tag :color="materialStatusMap[group.key].color">
-                {{ group.items.length }}
-              </Tag>
-            </div>
-            <div class="declaration-flow-panel__snapshot-items">
-              <div
-                v-for="item in group.items"
-                :key="`${item.moduleKey}-${item.tabKey}-${item.itemName}`"
-                class="declaration-flow-panel__snapshot-item"
-              >
-                <div class="declaration-flow-panel__event-head">
-                  <strong>{{ item.itemName }}</strong>
-                  <Tag :color="materialStatusMap[item.checkStatus].color">
-                    {{ materialStatusMap[item.checkStatus].label }}
-                  </Tag>
-                </div>
-                <Space wrap>
-                  <Tag>{{ item.moduleName }}</Tag>
-                  <Tag>{{ item.tabName }}</Tag>
-                  <Tag>{{ item.matchedCount }}/{{ item.requiredCount }}</Tag>
-                  <Tag v-if="item.attachmentMissing" color="orange">缺附件</Tag>
-                </Space>
-                <TypographyParagraph class="declaration-flow-panel__text">
-                  缺失字段：{{ formatArray(item.missingFields) }}
-                </TypographyParagraph>
-                <p class="declaration-flow-panel__muted">
-                  匹配记录：{{ formatArray(item.matchedRecordIds) }}
-                </p>
-                <Button
-                  v-if="item.checkStatus !== 'passed'"
-                  size="small"
-                  type="link"
-                  @click="openProfile(item)"
-                >
-                  去企业资料补齐
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
     </template>
   </div>
 </template>
@@ -267,9 +163,7 @@ function openProfile(item: ClientDeclarationApi.DeclarationMaterialSnapshotItem)
 
 .declaration-flow-panel__section,
 .declaration-flow-panel__event,
-.declaration-flow-panel__replenishment,
-.declaration-flow-panel__snapshot-group,
-.declaration-flow-panel__snapshot-item {
+.declaration-flow-panel__replenishment {
   padding: 16px;
   border: 1px solid #f0f0f0;
   border-radius: 8px;
@@ -388,8 +282,7 @@ function openProfile(item: ClientDeclarationApi.DeclarationMaterialSnapshotItem)
 }
 
 .declaration-flow-panel__section-head,
-.declaration-flow-panel__event-head,
-.declaration-flow-panel__snapshot-title {
+.declaration-flow-panel__event-head {
   display: flex;
   gap: 12px;
   align-items: flex-start;
@@ -410,16 +303,13 @@ function openProfile(item: ClientDeclarationApi.DeclarationMaterialSnapshotItem)
   color: rgb(0 0 0 / 45%);
 }
 
-.declaration-flow-panel__events,
-.declaration-flow-panel__snapshot-groups,
-.declaration-flow-panel__snapshot-items {
+.declaration-flow-panel__events {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.declaration-flow-panel__event,
-.declaration-flow-panel__snapshot-item {
+.declaration-flow-panel__event {
   background: #fafafa;
 }
 
@@ -441,8 +331,7 @@ function openProfile(item: ClientDeclarationApi.DeclarationMaterialSnapshotItem)
   }
 
   .declaration-flow-panel__section-head,
-  .declaration-flow-panel__event-head,
-  .declaration-flow-panel__snapshot-title {
+  .declaration-flow-panel__event-head {
     flex-direction: column;
   }
 }

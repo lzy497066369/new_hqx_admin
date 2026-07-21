@@ -58,8 +58,12 @@ const summaryItems = computed(() => {
 
   return [
     { label: '材料准备度', value: props.readiness.materialReadinessScore },
-    { label: '草稿完整度', value: props.readiness.bookCompletionRate },
-    { label: '高企测算分', value: props.readiness.gaoxinScore },
+    ...(props.readiness.hasGaoxinContent
+      ? [
+          { label: '草稿完整度', value: props.readiness.bookCompletionRate },
+          { label: '高企测算分', value: props.readiness.gaoxinScore },
+        ]
+      : []),
     { label: '阻断项', value: props.readiness.issueCounts.error },
   ];
 });
@@ -78,13 +82,13 @@ const exportProgress = computed(() => {
     return 0;
   }
 
+  const values = [
+    props.readiness.materialReadinessScore,
+    props.readiness.bookCompletionRate,
+    props.readiness.gaoxinScore,
+  ].filter((value): value is number => typeof value === 'number');
   return Math.min(
-    Math.round(
-      (props.readiness.materialReadinessScore +
-        props.readiness.bookCompletionRate +
-        Math.min(props.readiness.gaoxinScore, 100)) /
-        3,
-    ),
+    Math.round(values.reduce((total, value) => total + Math.min(value, 100), 0) / values.length),
     100,
   );
 });
@@ -105,7 +109,7 @@ function handleIssueAction(issue: ClientDeclarationApi.GaoxinExportReadinessIssu
 <template>
   <div class="gaoxin-export-readiness-panel">
     <div v-if="loading" class="gaoxin-export-readiness-panel__loading">
-      正在检查申报书导出准备情况...
+      正在检查导出准备情况...
     </div>
     <Empty v-else-if="!readiness" description="暂无导出准备检查结果">
       <Button @click="emit('refresh')">立即检查</Button>
@@ -117,7 +121,7 @@ function handleIssueAction(issue: ClientDeclarationApi.GaoxinExportReadinessIssu
             检查时间：{{ readiness.generatedAt }}
           </p>
           <h3 class="gaoxin-export-readiness-panel__title">
-            申报书完善和导出准备
+            申报材料包导出准备
           </h3>
           <TypographyParagraph class="gaoxin-export-readiness-panel__text">
             {{ readiness.summary }}
@@ -127,7 +131,12 @@ function handleIssueAction(issue: ClientDeclarationApi.GaoxinExportReadinessIssu
           <Tag :color="statusMetaMap[readiness.status].color">
             {{ statusMetaMap[readiness.status].label }}
           </Tag>
-          <Button :loading="exporting" type="primary" @click="emit('exportPackage')">
+          <Button
+            :disabled="!readiness.canExport"
+            :loading="exporting"
+            type="primary"
+            @click="emit('exportPackage')"
+          >
             导出数据包
           </Button>
           <Button @click="emit('refresh')">重新检查</Button>

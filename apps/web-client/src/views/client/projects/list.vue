@@ -13,7 +13,10 @@ import {
 } from 'antdv-next';
 
 import { getClientDeclareProjectsApi } from '#/api/client';
-import type { ClientDeclareProjectApi } from '#/api/client';
+import type {
+  ClientDeclarationApi,
+  ClientDeclareProjectApi,
+} from '#/api/client';
 import { useClientEnterpriseStore } from '#/store';
 
 const store = useClientEnterpriseStore();
@@ -22,6 +25,20 @@ const router = useRouter();
 const keyword = shallowRef('');
 const loading = shallowRef(false);
 const projects = shallowRef<ClientDeclareProjectApi.DeclareProject[]>([]);
+
+const declarationStatusMetaMap: Record<
+  ClientDeclarationApi.DeclarationStatus | string,
+  { color: string; label: string }
+> = {
+  approved: { color: 'green', label: '已通过' },
+  cancelled: { color: 'default', label: '已取消' },
+  completed: { color: 'green', label: '已完成' },
+  draft: { color: 'default', label: '草稿' },
+  preparing: { color: 'blue', label: '准备中' },
+  rejected: { color: 'red', label: '已退回' },
+  reviewing: { color: 'orange', label: '审核中' },
+  submitted: { color: 'purple', label: '已提交' },
+};
 
 const regionHint = computed(() => {
   const profile = store.enterpriseProfile;
@@ -50,6 +67,18 @@ async function loadProjects() {
 
 function openProjectDetail(project: ClientDeclareProjectApi.DeclareProject) {
   router.push(`/projects/detail/${project.id}`);
+}
+
+function openExistingDeclaration(project: ClientDeclareProjectApi.DeclareProject) {
+  if (!project.existingDeclaration) {
+    return;
+  }
+
+  router.push(`/projects/my/detail/${project.existingDeclaration.id}`);
+}
+
+function getDeclarationStatusMeta(status: string) {
+  return declarationStatusMetaMap[status] ?? { color: 'default', label: status };
 }
 
 onMounted(loadProjects);
@@ -118,6 +147,13 @@ onMounted(loadProjects);
               <Tag v-for="regionName in item.regionNames" :key="regionName">
                 {{ regionName }}
               </Tag>
+              <Tag
+                v-if="item.existingDeclaration"
+                :color="getDeclarationStatusMeta(item.existingDeclaration.status).color"
+              >
+                已有申报 ·
+                {{ getDeclarationStatusMeta(item.existingDeclaration.status).label }}
+              </Tag>
             </Space>
             <TypographyParagraph
               :ellipsis="{ rows: 2 }"
@@ -126,12 +162,19 @@ onMounted(loadProjects);
               {{ item.basicDescription || item.applicableObjects || '暂无项目说明' }}
             </TypographyParagraph>
           </div>
-          <Button
-            type="primary"
-            @click="openProjectDetail(item)"
-          >
-            查看详情
-          </Button>
+          <Space>
+            <Button @click="openProjectDetail(item)">查看详情</Button>
+            <Button
+              v-if="item.existingDeclaration"
+              type="primary"
+              @click="openExistingDeclaration(item)"
+            >
+              继续申报
+            </Button>
+            <Button v-else type="primary" @click="openProjectDetail(item)">
+              发起申报
+            </Button>
+          </Space>
         </div>
       </div>
     </Card>

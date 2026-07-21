@@ -3,14 +3,16 @@ import type {
   OnActionClickParams,
   VxeTableGridOptions,
 } from '#/adapter/vxe-table';
+import type { SystemMenuApi } from '#/api/system/menu';
 
 import { Page, useVbenDrawer } from '@vben/common-ui';
 import { IconifyIcon, Plus } from '@vben/icons';
 
-import { Button } from 'antdv-next';
+import { Button, Select } from 'antdv-next';
+import { shallowRef } from 'vue';
 
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
-import { deleteMenu, getMenuList, SystemMenuApi } from '#/api/system/menu';
+import { deleteMenu, getMenuList } from '#/api/system/menu';
 import { $t } from '#/locales';
 import {
   showActionFailure,
@@ -32,6 +34,12 @@ const [DetailDrawer, detailDrawerApi] = useVbenDrawer({
   destroyOnClose: true,
 });
 
+const portalType = shallowRef<SystemMenuApi.SystemMenu['portalType']>('admin');
+const portalOptions = [
+  { label: '管理端', value: 'admin' },
+  { label: '客户端', value: 'client' },
+];
+
 const [Grid, gridApi] = useVbenVxeGrid({
   gridOptions: {
     columns: useColumns(onActionClick),
@@ -43,7 +51,7 @@ const [Grid, gridApi] = useVbenVxeGrid({
     proxyConfig: {
       ajax: {
         query: async () => {
-          return await getMenuList();
+          return await getMenuList({ portalType: portalType.value });
         },
       },
     },
@@ -92,6 +100,10 @@ function onRefresh() {
   gridApi.query();
 }
 
+function onPortalChange() {
+  gridApi.query();
+}
+
 function onEdit(row: SystemMenuApi.SystemMenu) {
   formDrawerApi.setData(row).open();
 }
@@ -101,16 +113,18 @@ function onDetail(row: SystemMenuApi.SystemMenu) {
 }
 
 function onCreate() {
-  formDrawerApi.setData({}).open();
+  formDrawerApi.setData({ portalType: portalType.value }).open();
 }
 
 function onAppend(row: SystemMenuApi.SystemMenu) {
-  formDrawerApi.setData({ parentId: row.id }).open();
+  formDrawerApi
+    .setData({ parentId: row.id, portalType: portalType.value })
+    .open();
 }
 
 function onDelete(row: SystemMenuApi.SystemMenu) {
   showActionLoading($t('ui.actionMessage.deleting', [row.name]));
-  deleteMenu(row.id)
+  deleteMenu(row.id, row.portalType ?? portalType.value)
     .then(() => {
       showActionSuccess($t('ui.actionMessage.deleteSuccess', [row.name]));
       onRefresh();
@@ -127,6 +141,12 @@ function onDelete(row: SystemMenuApi.SystemMenu) {
     <DetailDrawer />
     <Grid>
       <template #toolbar-tools>
+        <Select
+          v-model:value="portalType"
+          class="w-32"
+          :options="portalOptions"
+          @change="onPortalChange"
+        />
         <Button type="primary" @click="onCreate">
           <Plus class="size-5" />
           {{ $t('ui.actionTitle.create', [$t('system.menu.name')]) }}

@@ -22,6 +22,15 @@ export namespace ClientDeclareProjectApi {
   export interface DeclareProject {
     applicableObjects: null | string;
     basicDescription: null | string;
+    canCreateDeclaration: boolean;
+    existingDeclaration: null | {
+      declarationNo: string;
+      id: string;
+      regionId: null | string;
+      regionName: null | string;
+      status: ClientDeclarationApi.DeclarationStatus | string;
+      updateTime: string;
+    };
     id: string;
     matchedPolicyCount: number;
     matchedPolicies: ClientPolicyApi.PolicyFile[];

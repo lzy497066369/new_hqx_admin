@@ -2,7 +2,7 @@
 import type { VbenFormSchema } from '#/adapter/form';
 import type { SystemMenuApi } from '#/api/system/menu';
 
-import { computed, nextTick, ref } from 'vue';
+import { computed, nextTick, ref, shallowRef } from 'vue';
 
 import { useVbenDrawer } from '@vben/common-ui';
 
@@ -24,6 +24,8 @@ const emit = defineEmits<{
 }>();
 
 const formData = ref<SystemMenuApi.SystemMenu>();
+const formPortalType =
+  shallowRef<SystemMenuApi.SystemMenu['portalType']>('admin');
 const schema: VbenFormSchema[] = [
   {
     component: 'RadioGroup',
@@ -46,7 +48,11 @@ const schema: VbenFormSchema[] = [
       .max(30, $t('ui.formRules.maxLength', [$t('system.menu.menuName'), 30]))
       .refine(
         async (value: string) =>
-          !(await isMenuNameExists(value, formData.value?.id)),
+          !(await isMenuNameExists(
+            value,
+            formData.value?.id,
+            formPortalType.value,
+          )),
         (value) => ({
           message: $t('ui.formRules.alreadyExists', [
             $t('system.menu.menuName'),
@@ -58,10 +64,12 @@ const schema: VbenFormSchema[] = [
   {
     component: 'ApiTreeSelect',
     componentProps: {
-      api: getMenuList,
+      api: async () => getMenuList({ portalType: formPortalType.value }),
       allowClear: true,
+      alwaysLoad: true,
       class: 'w-full',
       childrenField: 'children',
+      immediate: false,
       labelField: 'meta.title',
       treeDefaultExpandAll: false,
       valueField: 'id',
@@ -93,7 +101,11 @@ const schema: VbenFormSchema[] = [
       )
       .refine(
         async (value: string) =>
-          !(await isMenuPathExists(value, formData.value?.id)),
+          !(await isMenuPathExists(
+            value,
+            formData.value?.id,
+            formPortalType.value,
+          )),
         (value) => ({
           message: $t('ui.formRules.alreadyExists', [
             $t('system.menu.path'),
@@ -162,6 +174,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
         await formApi.getValues<
           Omit<SystemMenuApi.SystemMenu, 'children' | 'id'>
         >();
+      values.portalType = formPortalType.value;
       await (formId.value
         ? updateMenu(formId.value, values)
         : createMenu(values));
@@ -185,6 +198,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
     formApi.resetForm();
     formId.value = data?.id;
     formData.value = data;
+    formPortalType.value = data?.portalType ?? 'admin';
 
     await nextTick();
     if (data) {

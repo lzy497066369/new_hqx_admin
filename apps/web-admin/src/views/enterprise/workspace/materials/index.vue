@@ -18,7 +18,6 @@ import EnterpriseWorkspaceFinance from '../finance/index.vue';
 import EnterpriseWorkspaceProfile from '../profile/index.vue';
 import EnterpriseCertificateGallery from './components/EnterpriseCertificateGallery.vue';
 import EnterpriseMaterialCompanyOverview from './components/EnterpriseMaterialCompanyOverview.vue';
-import EnterpriseMaterialSidebar from './components/EnterpriseMaterialSidebar.vue';
 import EnterpriseMaterialTemplateCenter from './components/EnterpriseMaterialTemplateCenter.vue';
 import EnterprisePhotoGallery from './components/EnterprisePhotoGallery.vue';
 import EnterprisePropertyLedger from './components/EnterprisePropertyLedger.vue';
@@ -26,7 +25,6 @@ import { resolveMaterialLedgerTab } from './material-ledger-query';
 import { resolveMaterialLedgerEnterpriseId } from './material-ledger-enterprise';
 import {
   getMaterialSectionConfig,
-  materialSections,
   type MaterialSectionTarget,
   isMaterialSectionKey,
   type MaterialSectionKey,
@@ -201,11 +199,6 @@ watch(enterpriseId, (nextEnterpriseId) => {
           </header>
 
           <div class="enterprise-material-ledger__workspace">
-            <EnterpriseMaterialSidebar
-              :active-key="activeModule"
-              :items="materialSections"
-              @select="selectModule"
-            />
             <main class="enterprise-material-ledger__module">
               <EnterpriseMaterialCompanyOverview
               v-if="activeDefinition.view === 'company'"
@@ -326,8 +319,6 @@ watch(enterpriseId, (nextEnterpriseId) => {
 .enterprise-material-ledger__company-select { width: 280px; }
 
 .enterprise-material-ledger__workspace {
-  display: grid;
-  grid-template-columns: 180px minmax(0, 1fr);
   min-width: 0;
 }
 

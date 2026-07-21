@@ -34,6 +34,7 @@ import type {
 import { useClientEnterpriseStore } from '#/store';
 
 import DeclarationFlowPanel from './components/declaration-flow-panel.vue';
+import DeclarationSchemeSummaryPanel from './components/declaration-scheme-summary-panel.vue';
 import GaoxinAiDiagnosisPanel from './components/gaoxin-ai-diagnosis-panel.vue';
 import GaoxinBookDraftPanel from './components/gaoxin-book-draft-panel.vue';
 import GaoxinExportReadinessPanel from './components/gaoxin-export-readiness-panel.vue';
@@ -77,6 +78,14 @@ const showGaoxinModules = computed(
 const showExportPackage = computed(
   () => declaration.value?.capabilities.exportPackage === true,
 );
+const showApplyCurrentScheme = computed(() => {
+  const item = declaration.value;
+  return Boolean(
+    item?.matchedScheme
+      && ['draft', 'preparing'].includes(item.status)
+      && item.matchedScheme.id !== item.appliedScheme?.id,
+  );
+});
 
 const statusMetaMap: Record<
   ClientDeclarationApi.DeclarationStatus,
@@ -292,6 +301,13 @@ function openBookDraftSection() {
   });
 }
 
+function openMaterialReadinessSection() {
+  document.querySelector('#declaration-material-readiness-section')?.scrollIntoView({
+    behavior: 'smooth',
+    block: 'start',
+  });
+}
+
 watch(declarationId, loadDetail, { immediate: true });
 </script>
 
@@ -319,11 +335,11 @@ watch(declarationId, loadDetail, { immediate: true });
             查看项目详情
           </Button>
           <Button
-            v-if="declaration?.matchedScheme && ['draft', 'preparing'].includes(declaration.status)"
-            :loading="schemeSyncing"
-            @click="syncDeclarationScheme"
+            v-if="declaration && declaration.missingMaterialCount > 0 && ['draft', 'preparing', 'rejected'].includes(declaration.status)"
+            type="primary"
+            @click="openMaterialReadinessSection"
           >
-            同步最新方案
+            补齐材料
           </Button>
           <Tag v-if="declaration" :color="statusMeta.color">
             {{ statusMeta.label }}
@@ -350,17 +366,11 @@ watch(declarationId, loadDetail, { immediate: true });
             <DescriptionsItem label="申报地区">
               {{ declaration.regionName || '-' }}
             </DescriptionsItem>
-            <DescriptionsItem label="方案版本">
-              {{ declaration.schemeVersion || '-' }}
-            </DescriptionsItem>
             <DescriptionsItem label="当前节点">
               {{ declaration.activeNodeNames.length ? declaration.activeNodeNames.join('、') : declaration.currentNodeName || '-' }}
             </DescriptionsItem>
             <DescriptionsItem label="截止时间">
               {{ declaration.deadline || '-' }}
-            </DescriptionsItem>
-            <DescriptionsItem label="流转方式">
-              节点可并行开启；各节点到截止时间后独立自动完成，未到开始时间时显示待开始。
             </DescriptionsItem>
             <DescriptionsItem label="提交时间">
               {{ declaration.submitTime || '-' }}
@@ -375,9 +385,16 @@ watch(declarationId, loadDetail, { immediate: true });
           <div class="client-declaration-detail__progress">
             <Progress :percent="declaration.progress" />
             <div class="client-declaration-detail__metric">
-              <span>缺失材料</span>
+              <span>待补材料</span>
               <strong>{{ declaration.missingMaterialCount }}</strong>
             </div>
+            <Button
+              v-if="declaration.missingMaterialCount > 0"
+              type="primary"
+              @click="openMaterialReadinessSection"
+            >
+              去补齐材料
+            </Button>
             <div
               v-if="declaration.rejectedReason"
               class="client-declaration-detail__reject-reason"
@@ -388,49 +405,23 @@ watch(declarationId, loadDetail, { immediate: true });
         </Card>
       </div>
 
-      <Card :bordered="false" title="命中的配置方案">
-        <template v-if="declaration.matchedScheme">
-          <Descriptions :column="1" bordered size="small">
-            <DescriptionsItem label="方案名称">
-              {{ declaration.matchedScheme.schemeName }}
-            </DescriptionsItem>
-            <DescriptionsItem label="方案版本">
-              {{ declaration.matchedScheme.version }}
-            </DescriptionsItem>
-            <DescriptionsItem label="方案地区">
-              {{ declaration.matchedScheme.regionId || '项目默认方案' }}
-            </DescriptionsItem>
-            <DescriptionsItem label="准入状态">
-              <Tag :color="declaration.matchedScheme.qualificationStatus === 'eligible' ? 'green' : 'orange'">
-                {{ declaration.matchedScheme.qualificationStatus === 'eligible' ? '当前满足准入条件' : '当前存在准入风险' }}
-              </Tag>
-            </DescriptionsItem>
-          </Descriptions>
-          <div
-            v-if="['draft', 'preparing'].includes(declaration.status)"
-            class="client-declaration-detail__scheme-actions"
-          >
-            <Button :loading="schemeSyncing" type="primary" @click="syncDeclarationScheme">
-              应用当前方案
-            </Button>
-          </div>
-        </template>
-        <Empty v-else description="当前申报地区尚未配置可应用的申报方案" />
+      <DeclarationSchemeSummaryPanel
+        :declaration="declaration"
+        :scheme-syncing="schemeSyncing"
+        :show-apply-current-scheme="showApplyCurrentScheme"
+        @apply-current-scheme="syncDeclarationScheme"
+      />
+
+      <Card id="declaration-material-readiness-section" :bordered="false" title="待办与材料">
+        <ProjectMaterialReadinessPanel
+          :loading="materialReadinessLoading"
+          :readiness="materialReadiness"
+          @open-profile="openProfileModule"
+          @recheck="loadMaterialReadiness(true)"
+        />
       </Card>
 
-      <Card v-if="declaration.qualification" :bordered="false" title="准入诊断">
-        <div class="client-declaration-detail__qualification">
-          <Tag :color="declaration.qualification.status === 'eligible' ? 'green' : 'orange'">
-            {{ declaration.qualification.status === 'eligible' ? '当前满足准入条件' : '当前存在准入风险' }}
-          </Tag>
-          <div v-if="declaration.qualification.missing.length" class="client-declaration-detail__qualification-list">
-            <div v-for="item in declaration.qualification.missing" :key="item">{{ item }}</div>
-          </div>
-          <div v-else class="text-sm text-gray-500">当前企业资料与有效证书已满足该方案的准入条件。</div>
-        </div>
-      </Card>
-
-      <Card v-if="showGaoxinModules" :bordered="false" title="AI 申报诊断">
+      <Card v-if="showGaoxinModules" :bordered="false" title="申报诊断">
         <GaoxinAiDiagnosisPanel
           :diagnosis="aiDiagnosis"
           :loading="diagnosisLoading"
@@ -440,7 +431,7 @@ watch(declarationId, loadDetail, { immediate: true });
         />
       </Card>
 
-      <Card v-if="showGaoxinModules" :bordered="false" title="高企评分测算">
+      <Card v-if="showGaoxinModules" :bordered="false" title="高企认定评分">
         <GaoxinScorePanel
           :loading="scoreLoading"
           :score="gaoxinScore"
@@ -449,7 +440,7 @@ watch(declarationId, loadDetail, { immediate: true });
         />
       </Card>
 
-      <Card v-if="showSchemeScore && schemeScore" :bordered="false" title="方案评分">
+      <Card v-if="showSchemeScore && schemeScore" :bordered="false" title="本方案评分">
         <div class="client-declaration-detail__scheme-score">
           <strong>{{ schemeScore.totalScore }} / {{ schemeScore.passScore }}</strong>
           <Tag :color="schemeScore.passed ? 'green' : 'orange'">
@@ -466,15 +457,6 @@ watch(declarationId, loadDetail, { immediate: true });
         </div>
       </Card>
 
-      <Card :bordered="false" title="诊断与准备度">
-        <ProjectMaterialReadinessPanel
-          :loading="materialReadinessLoading"
-          :readiness="materialReadiness"
-          @open-profile="openProfileModule"
-          @recheck="loadMaterialReadiness(true)"
-        />
-      </Card>
-
       <Card v-if="showGaoxinModules" id="gaoxin-book-draft-section" :bordered="false" title="申报书草稿">
         <GaoxinBookDraftPanel
           :draft="gaoxinBookDraft"
@@ -486,7 +468,7 @@ watch(declarationId, loadDetail, { immediate: true });
         />
       </Card>
 
-      <Card v-if="showExportPackage" :bordered="false" title="申报书完善和导出准备">
+      <Card v-if="showExportPackage" :bordered="false" title="材料包导出">
         <GaoxinExportReadinessPanel
           :exporting="exportPackageLoading"
           :loading="exportReadinessLoading"
@@ -498,11 +480,8 @@ watch(declarationId, loadDetail, { immediate: true });
         />
       </Card>
 
-      <Card :bordered="false" title="流程记录">
-        <DeclarationFlowPanel
-          :flow="declaration.flow"
-          @open-profile="openProfileModule"
-        />
+      <Card :bordered="false" title="进度与历史">
+        <DeclarationFlowPanel :flow="declaration.flow" />
       </Card>
     </template>
   </div>
@@ -553,19 +532,6 @@ watch(declarationId, loadDetail, { immediate: true });
   gap: 12px;
 }
 
-.client-declaration-detail__qualification {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.client-declaration-detail__qualification-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  color: #ad6800;
-}
-
 .client-declaration-detail__scheme-score > strong {
   font-size: 22px;
 }
@@ -575,10 +541,6 @@ watch(declarationId, loadDetail, { immediate: true });
   justify-content: space-between;
   padding: 8px 0;
   border-bottom: 1px solid #f0f0f0;
-}
-
-.client-declaration-detail__scheme-actions {
-  margin-top: 12px;
 }
 
 .client-declaration-detail__metric {

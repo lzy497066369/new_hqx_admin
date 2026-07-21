@@ -70,6 +70,10 @@ const pagePresets: Record<string, PagePreset> = {
     description: '查看当前企业已关注、已申报或正在准备的项目。',
     sections: ['我的项目', '申报进度', '待补材料'],
   },
+  '/projects/todos': {
+    description: '集中处理申报退回、材料缺失和截止日期临近等事项。',
+    sections: ['申报待办', '材料补正', '截止提醒'],
+  },
   '/projects/my/detail': {
     description: '查看单次申报的基础信息、材料准备度、申报进度和补件事项。',
     sections: ['申报详情', '材料准备度', '流程记录'],

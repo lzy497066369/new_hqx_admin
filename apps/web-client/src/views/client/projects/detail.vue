@@ -76,9 +76,42 @@ const projectHint = computed(() => {
   return `${project.value.matchedPolicyCount} 条政策命中 · ${regions}`;
 });
 
+const existingDeclaration = computed(
+  () => project.value?.existingDeclaration ?? null,
+);
+const existingDeclarationStatusMeta = computed(() => {
+  const status = existingDeclaration.value?.status ?? 'draft';
+  const labelMap: Record<string, string> = {
+    approved: '已通过',
+    cancelled: '已取消',
+    completed: '已完成',
+    draft: '草稿',
+    preparing: '准备中',
+    rejected: '已退回',
+    reviewing: '审核中',
+    submitted: '已提交',
+  };
+  const colorMap: Record<string, string> = {
+    approved: 'green',
+    cancelled: 'default',
+    completed: 'green',
+    draft: 'default',
+    preparing: 'blue',
+    rejected: 'red',
+    reviewing: 'orange',
+    submitted: 'purple',
+  };
+  return {
+    color: colorMap[status] ?? 'default',
+    label: labelMap[status] ?? status,
+  };
+});
+
 const canCreateDeclaration = computed(() => {
   const scheme = project.value?.scheme;
   return Boolean(project.value) &&
+    !existingDeclaration.value &&
+    project.value?.canCreateDeclaration !== false &&
     scheme?.qualification.status !== 'ineligible' &&
     (!hasMultipleRegions.value || Boolean(selectedRegionId.value));
 });
@@ -214,6 +247,14 @@ async function openProfileModule(payload: { moduleKey: string; tabKey: string })
   });
 }
 
+function openExistingDeclaration() {
+  if (!existingDeclaration.value) {
+    return;
+  }
+
+  router.push(`/projects/my/detail/${existingDeclaration.value.id}`);
+}
+
 watch([projectId, selectedRegionId], loadDetail, { immediate: true });
 </script>
 
@@ -235,6 +276,14 @@ watch([projectId, selectedRegionId], loadDetail, { immediate: true });
         <Space wrap>
           <Button @click="router.push('/projects/list')">返回列表</Button>
           <Button
+            v-if="existingDeclaration"
+            type="primary"
+            @click="openExistingDeclaration"
+          >
+            继续申报
+          </Button>
+          <Button
+            v-else
             :disabled="!canCreateDeclaration"
             :loading="creating"
             type="primary"
@@ -303,11 +352,22 @@ watch([projectId, selectedRegionId], loadDetail, { immediate: true });
               placeholder="请选择实际申报地区"
             />
             <p>
-              {{ project.scheme
+              {{ existingDeclaration
+                ? `当前项目已有申报记录（${existingDeclarationStatusMeta.label}），可以继续完善申报材料。`
+                : project.scheme
                 ? '企业资料不完整也可以先创建申报草稿，系统会在详情里继续诊断缺口。'
                 : '当前地区尚未配置申报方案，可先创建草稿，待后台完成配置后在申报详情中同步应用。' }}
             </p>
             <Button
+              v-if="existingDeclaration"
+              block
+              type="primary"
+              @click="openExistingDeclaration"
+            >
+              继续申报
+            </Button>
+            <Button
+              v-else
               block
               :disabled="!canCreateDeclaration"
               :loading="creating"

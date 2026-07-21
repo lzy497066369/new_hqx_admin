@@ -34,6 +34,10 @@ const items = computed<DescriptionsItemType[]>(() => {
           : row?.meta?.title ?? '',
     },
     { label: $t('system.menu.menuName'), content: row?.name },
+    {
+      label: '所属端',
+      content: row?.portalType === 'client' ? '客户端' : '管理端',
+    },
     { label: $t('system.menu.type'), content: row?.type },
     { label: $t('system.menu.authCode'), content: row?.authCode ?? '-' },
     { label: $t('system.menu.path'), content: row?.path },

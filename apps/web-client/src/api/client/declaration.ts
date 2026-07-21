@@ -23,6 +23,11 @@ export namespace ClientDeclarationApi {
 
   export interface DeclarationItem {
     activeNodeNames: string[];
+    appliedScheme?: null | {
+      id: string;
+      schemeName: string;
+      version: string;
+    };
     capabilities: ClientDeclareProjectApi.DeclarationCapabilities;
     companyId: string;
     currentNodeName: null | string;
@@ -34,6 +39,7 @@ export namespace ClientDeclarationApi {
       id: string;
       qualificationStatus: 'eligible' | 'ineligible';
       regionId: null | string;
+      regionName: string;
       schemeName: string;
       version: string;
     };
@@ -205,11 +211,12 @@ export namespace ClientDeclarationApi {
   }
 
   export interface GaoxinExportReadiness {
-    bookCompletionRate: number;
+    bookCompletionRate: null | number;
     canExport: boolean;
     declarationId: string;
-    gaoxinScore: number;
+    gaoxinScore: null | number;
     generatedAt: string;
+    hasGaoxinContent: boolean;
     issueCounts: Record<GaoxinExportReadinessIssueLevel, number>;
     issues: GaoxinExportReadinessIssue[];
     materialReadinessScore: number;

@@ -210,9 +210,7 @@ function nextVersion(value: string): string {
 }
 
 function updateGaoxinScoreCapability(value: unknown) {
-  const enabled = value === true;
-  form.capabilities.gaoxinScore = enabled;
-  if (!enabled) form.capabilities.exportPackage = false;
+  form.capabilities.gaoxinScore = value === true;
 }
 </script>
 
@@ -252,7 +250,7 @@ function updateGaoxinScoreCapability(value: unknown) {
       <span class="font-medium text-gray-900">方案能力</span>
       <span class="flex items-center gap-2"><Switch v-model:checked="form.capabilities.score" size="small" />规则评分</span>
       <span class="flex items-center gap-2"><Switch :checked="form.capabilities.gaoxinScore" size="small" @update:checked="updateGaoxinScoreCapability" />高企测算</span>
-      <span class="flex items-center gap-2"><Switch v-model:checked="form.capabilities.exportPackage" :disabled="!form.capabilities.gaoxinScore" size="small" />导出申报包</span>
+      <span class="flex items-center gap-2"><Switch v-model:checked="form.capabilities.exportPackage" size="small" />导出申报包</span>
     </div>
 
     <div class="border-y border-gray-100 py-4">

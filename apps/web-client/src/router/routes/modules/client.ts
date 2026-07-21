@@ -238,6 +238,15 @@ const routes: RouteRecordRaw[] = [
         path: '/projects/my',
       },
       {
+        component: () => import('#/views/client/tasks/index.vue'),
+        meta: {
+          icon: 'mdi:clipboard-alert-outline',
+          title: '申报待办',
+        },
+        name: 'ClientProjectTodos',
+        path: '/projects/todos',
+      },
+      {
         component: () => import('#/views/client/projects/my-detail.vue'),
         meta: {
           hideInMenu: true,

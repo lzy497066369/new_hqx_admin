@@ -2,7 +2,7 @@
 import type { ClientDashboardApi } from '#/api/client';
 
 import { computed, onMounted, shallowRef } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 
 import { Page } from '@vben/common-ui';
 import { IconifyIcon } from '@vben/icons';
@@ -14,9 +14,13 @@ import { useClientDashboardData } from '../../dashboard/composables/use-client-d
 defineOptions({ name: 'ClientTasks' });
 
 const router = useRouter();
+const route = useRoute();
 const dashboard = useClientDashboardData();
 const todos = computed(() => dashboard.todos.value);
-const activeCategory = shallowRef<'all' | ClientDashboardApi.TodoItem['category']>('all');
+const isDeclarationTasksPage = computed(() => route.path === '/projects/todos');
+const activeCategory = shallowRef<'all' | ClientDashboardApi.TodoItem['category']>(
+  isDeclarationTasksPage.value ? 'declaration' : 'all',
+);
 const activePriority = shallowRef<'all' | ClientDashboardApi.TodoItem['priority']>('all');
 
 const priorityColor: Record<string, string> = {
@@ -117,12 +121,18 @@ function navTo(path: string) {
       <template v-else-if="todos">
         <section class="client-tasks__head">
           <div>
-            <div class="text-sm font-medium text-teal-700">待办事项</div>
+            <div class="text-sm font-medium text-teal-700">
+              {{ isDeclarationTasksPage ? '申报待办' : '待办事项' }}
+            </div>
             <h1 class="mt-1 text-2xl font-semibold text-slate-950">
               {{ dashboard.companyName.value }}
             </h1>
             <p class="mt-1 text-sm text-slate-600">
-              汇总企业资料未完善、材料未上传或需修正、申报待完善事项。
+              {{
+                isDeclarationTasksPage
+                  ? '集中处理申报退回、材料缺失和截止日期临近等事项。'
+                  : '汇总企业资料未完善、材料未上传或需修正、申报待完善事项。'
+              }}
             </p>
           </div>
           <Button @click="dashboard.loadTodos()">

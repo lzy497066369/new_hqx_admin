@@ -219,6 +219,7 @@ export interface EnterpriseWorkspaceDeclarationDetail extends EnterpriseWorkspac
     readinessScore: number;
     riskLevel: string;
   };
+  matchedScheme: EnterpriseWorkspaceDeclarationConfiguration['scheme'];
   qualification: null | {
     missing: string[];
     status: 'eligible' | 'ineligible';
@@ -274,7 +275,7 @@ export interface EnterpriseWorkspaceDeclarationConfiguration {
     rules: EnterpriseWorkspaceQualificationRuleResult[];
     status: 'eligible' | 'ineligible';
   };
-  scheme: { id: string; name: string; version: string };
+  scheme: null | { id: string; name: string; version: string };
   score: {
     preset: null | { description: null | string; id: string; name: string; version: string };
     rules: Record<string, unknown>;

@@ -126,7 +126,7 @@ watch(
         description="申报记录不存在或无权访问"
       />
       <div v-else-if="detail" class="declaration-detail">
-        <Card title="申报详情"
+        <Card title="申报总览"
           ><Descriptions bordered :column="2"
             ><DescriptionsItem label="项目名称">{{
               detail.projectName
@@ -151,21 +151,9 @@ watch(
             }}</DescriptionsItem></Descriptions
           ></Card
         ><Card title="方案与准入核验"
-          ><DeclarationConfigurationSummary :configuration="detail.configuration" /></Card
-        ><Card title="申报流程与节点前置条件"
-          ><GaoxinAdmissionFlowSummary
-            :flow-template="detail.flowTemplate"
-            :qualification="detail.qualification"
-          /></Card
-        ><Card title="高企评分测算"
-          ><GaoxinScoreSummary
-            :configuration="detail.configuration.score"
-            :score="detail.gaoxinScore"
-          /></Card
-        ><Card title="方案材料要求与准备度"
-          ><DeclarationMaterialSummary
-            :configuration="detail.configuration.material"
-            :material-check="detail.materialCheck"
+          ><DeclarationConfigurationSummary
+            :configuration="detail.configuration"
+            :matched-scheme="detail.matchedScheme"
           /></Card
         ><Card title="材料核验结果"
           ><template v-if="detail.materialCheck"
@@ -210,6 +198,21 @@ watch(
             </article>
           </div>
           <Empty v-else description="暂无待补材料明细" /></Card
+        ><Card title="方案材料要求"
+          ><DeclarationMaterialSummary
+            :configuration="detail.configuration.material"
+            :material-check="detail.materialCheck"
+          /></Card
+        ><Card title="申报流程与节点前置条件"
+          ><GaoxinAdmissionFlowSummary
+            :flow-template="detail.flowTemplate"
+            :qualification="detail.qualification"
+          /></Card
+        ><Card title="高企评分测算"
+          ><GaoxinScoreSummary
+            :configuration="detail.configuration.score"
+            :score="detail.gaoxinScore"
+          /></Card
         ><Card title="流程历史"
           ><Timeline
             ><TimelineItem

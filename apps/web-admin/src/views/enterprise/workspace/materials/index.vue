@@ -5,7 +5,7 @@ import { computed, shallowRef, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 import { Page } from '@vben/common-ui';
-import { Empty, Select, Spin } from 'antdv-next';
+import { Alert, Empty, Select, Spin } from 'antdv-next';
 
 import { getEnterpriseProfilesApi } from '#/api';
 import { useEnterpriseContextStore } from '#/store';
@@ -18,12 +18,15 @@ import EnterpriseWorkspaceFinance from '../finance/index.vue';
 import EnterpriseWorkspaceProfile from '../profile/index.vue';
 import EnterpriseCertificateGallery from './components/EnterpriseCertificateGallery.vue';
 import EnterpriseMaterialCompanyOverview from './components/EnterpriseMaterialCompanyOverview.vue';
+import EnterpriseMaterialSidebar from './components/EnterpriseMaterialSidebar.vue';
+import EnterpriseMaterialTemplateCenter from './components/EnterpriseMaterialTemplateCenter.vue';
 import EnterprisePhotoGallery from './components/EnterprisePhotoGallery.vue';
 import EnterprisePropertyLedger from './components/EnterprisePropertyLedger.vue';
 import { resolveMaterialLedgerTab } from './material-ledger-query';
 import { resolveMaterialLedgerEnterpriseId } from './material-ledger-enterprise';
 import {
   getMaterialSectionConfig,
+  materialSections,
   type MaterialSectionTarget,
   isMaterialSectionKey,
   type MaterialSectionKey,
@@ -43,6 +46,7 @@ const activeModule = shallowRef<MaterialSectionKey>(
 );
 const enterprises = shallowRef<EnterpriseProfileItem[]>([]);
 const enterprisesLoaded = shallowRef(false);
+const errorMessage = shallowRef('');
 const loading = shallowRef(false);
 
 const activeDefinition = computed(() => getMaterialSectionConfig(activeModule.value));
@@ -65,6 +69,7 @@ const selectedEnterprise = computed(() =>
 );
 async function loadEnterprises() {
   loading.value = true;
+  errorMessage.value = '';
   try {
     const result = await getEnterpriseProfilesApi({ page: 1, pageSize: 100_000 });
     enterprises.value = result.items;
@@ -76,6 +81,9 @@ async function loadEnterprises() {
       enterpriseContextStore.currentEnterpriseId,
     );
     enterprisesLoaded.value = true;
+  } catch (error) {
+    enterprises.value = [];
+    errorMessage.value = error instanceof Error ? error.message : '企业列表加载失败';
   } finally {
     loading.value = false;
   }
@@ -97,6 +105,10 @@ function selectModule(target: string | MaterialSectionTarget) {
   }
   void router.replace({
     path: `/enterprise-material-ledger/${nextTarget.section}`,
+    query: {
+      ...(enterpriseId.value ? { enterpriseId: enterpriseId.value } : {}),
+      ...(selectedTab ? { tab: selectedTab } : {}),
+    },
   });
 }
 
@@ -134,11 +146,6 @@ watch(
     if (legacyTab) {
       enterpriseContextStore.setMaterialLedgerTab(activeModule.value, legacyTab);
     }
-    if (routeEnterpriseId || typeof queryTab === 'string') {
-      void router.replace({
-        path: `/enterprise-material-ledger/${activeModule.value}`,
-      });
-    }
   },
   { immediate: true },
 );
@@ -162,13 +169,22 @@ watch(
 );
 
 void loadEnterprises();
+
+watch(enterpriseId, (nextEnterpriseId) => {
+  if (!nextEnterpriseId || route.query.enterpriseId === nextEnterpriseId) return;
+  void router.replace({
+    path: route.path,
+    query: { ...route.query, enterpriseId: nextEnterpriseId },
+  });
+});
 </script>
 
 <template>
   <Page auto-content-height>
     <Spin :spinning="loading">
       <div class="enterprise-material-ledger">
-        <section v-if="selectedEnterprise" class="enterprise-material-ledger__content">
+        <Alert v-if="errorMessage" :message="errorMessage" show-icon type="error" />
+        <section v-else-if="selectedEnterprise" class="enterprise-material-ledger__content">
           <header class="enterprise-material-ledger__header">
             <div class="enterprise-material-ledger__title">
               <span>企业材料台账</span>
@@ -184,12 +200,23 @@ void loadEnterprises();
             </div>
           </header>
 
-            <EnterpriseMaterialCompanyOverview
+          <div class="enterprise-material-ledger__workspace">
+            <EnterpriseMaterialSidebar
+              :active-key="activeModule"
+              :items="materialSections"
+              @select="selectModule"
+            />
+            <main class="enterprise-material-ledger__module">
+              <EnterpriseMaterialCompanyOverview
               v-if="activeDefinition.view === 'company'"
               :key="`company-${enterpriseId}`"
               :enterprise="selectedEnterprise"
               @open-declarations="openEnterpriseDeclarations"
               @select-section="selectModule"
+            />
+            <EnterpriseMaterialTemplateCenter
+              v-else-if="activeDefinition.view === 'templates'"
+              :key="`templates-${enterpriseId}`"
             />
             <EnterpriseWorkspaceProfile
               v-else-if="activeDefinition.view === 'profile'"
@@ -229,6 +256,8 @@ void loadEnterprises();
               :key="`photos-${enterpriseId}`"
             />
             <Empty v-else :description="`${activeDefinition.title}正在接入后台维护能力`" />
+            </main>
+          </div>
         </section>
         <Empty v-else-if="!loading" description="暂无可见企业" />
       </div>
@@ -295,6 +324,14 @@ void loadEnterprises();
 }
 
 .enterprise-material-ledger__company-select { width: 280px; }
+
+.enterprise-material-ledger__workspace {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  min-width: 0;
+}
+
+.enterprise-material-ledger__module { min-width: 0; }
 
 .enterprise-material-ledger__content > :deep(.ant-card),
 .enterprise-material-ledger__content > :deep(.enterprise-profile-page) {
@@ -495,6 +532,7 @@ void loadEnterprises();
   .enterprise-material-ledger__title { align-items: flex-start; flex-direction: column; gap: 4px; }
   .enterprise-material-ledger__title span { padding: 0; border: 0; }
   .enterprise-material-ledger__company-select { width: 100%; }
+  .enterprise-material-ledger__workspace { grid-template-columns: 1fr; }
   .enterprise-material-ledger__content > :deep(.ant-card),
   .enterprise-material-ledger__content > :deep(.enterprise-profile-page) { margin: 14px; }
   .enterprise-material-ledger__content :deep(.enterprise-finance-page),

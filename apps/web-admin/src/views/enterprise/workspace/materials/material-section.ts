@@ -15,6 +15,7 @@ export type MaterialSectionKey =
   | 'employee'
   | 'finance'
   | 'intellectual_property'
+  | 'materials'
   | 'photo';
 
 export type MaterialSectionView =
@@ -27,6 +28,7 @@ export type MaterialSectionView =
   | 'employees'
   | 'profile'
   | 'properties'
+  | 'templates'
   | 'photos';
 
 export interface MaterialSectionConfig {
@@ -44,6 +46,7 @@ export interface MaterialSectionTarget {
 
 export const materialSections: readonly MaterialSectionConfig[] = [
   { icon: 'lucide:building-2', key: 'company', title: '公司资料', view: 'company' },
+  { icon: 'lucide:files', key: 'materials', title: '导入记录', view: 'templates' },
   { icon: 'lucide:clipboard-pen-line', key: 'basic', title: '企业基础档案', view: 'profile' },
   { icon: 'lucide:landmark', key: 'finance', title: '财税', view: 'finance' },
   { icon: 'lucide:users-round', key: 'employee', title: '员工', view: 'employees' },
@@ -109,7 +112,7 @@ export function resolveMaterialLedgerSection(
   section: string | undefined,
   routeName?: string | symbol | undefined,
 ): MaterialSectionKey {
-  if (section === 'contacts' || section === 'materials') return 'basic';
+  if (section === 'contacts') return 'basic';
   if (section && isMaterialSectionKey(section)) return section;
   return typeof routeName === 'string'
     ? (materialMenuRouteSections[routeName] ?? 'company')

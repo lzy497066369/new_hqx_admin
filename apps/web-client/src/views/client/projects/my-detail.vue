@@ -319,7 +319,7 @@ watch(declarationId, loadDetail, { immediate: true });
             查看项目详情
           </Button>
           <Button
-            v-if="declaration && ['draft', 'preparing'].includes(declaration.status)"
+            v-if="declaration?.matchedScheme && ['draft', 'preparing'].includes(declaration.status)"
             :loading="schemeSyncing"
             @click="syncDeclarationScheme"
           >
@@ -387,6 +387,36 @@ watch(declarationId, loadDetail, { immediate: true });
           </div>
         </Card>
       </div>
+
+      <Card :bordered="false" title="命中的配置方案">
+        <template v-if="declaration.matchedScheme">
+          <Descriptions :column="1" bordered size="small">
+            <DescriptionsItem label="方案名称">
+              {{ declaration.matchedScheme.schemeName }}
+            </DescriptionsItem>
+            <DescriptionsItem label="方案版本">
+              {{ declaration.matchedScheme.version }}
+            </DescriptionsItem>
+            <DescriptionsItem label="方案地区">
+              {{ declaration.matchedScheme.regionId || '项目默认方案' }}
+            </DescriptionsItem>
+            <DescriptionsItem label="准入状态">
+              <Tag :color="declaration.matchedScheme.qualificationStatus === 'eligible' ? 'green' : 'orange'">
+                {{ declaration.matchedScheme.qualificationStatus === 'eligible' ? '当前满足准入条件' : '当前存在准入风险' }}
+              </Tag>
+            </DescriptionsItem>
+          </Descriptions>
+          <div
+            v-if="['draft', 'preparing'].includes(declaration.status)"
+            class="client-declaration-detail__scheme-actions"
+          >
+            <Button :loading="schemeSyncing" type="primary" @click="syncDeclarationScheme">
+              应用当前方案
+            </Button>
+          </div>
+        </template>
+        <Empty v-else description="当前申报地区尚未配置可应用的申报方案" />
+      </Card>
 
       <Card v-if="declaration.qualification" :bordered="false" title="准入诊断">
         <div class="client-declaration-detail__qualification">
@@ -545,6 +575,10 @@ watch(declarationId, loadDetail, { immediate: true });
   justify-content: space-between;
   padding: 8px 0;
   border-bottom: 1px solid #f0f0f0;
+}
+
+.client-declaration-detail__scheme-actions {
+  margin-top: 12px;
 }
 
 .client-declaration-detail__metric {

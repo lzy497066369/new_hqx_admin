@@ -30,6 +30,13 @@ export namespace ClientDeclarationApi {
     declarationNo: string;
     id: string;
     missingMaterialCount: number;
+    matchedScheme?: null | {
+      id: string;
+      qualificationStatus: 'eligible' | 'ineligible';
+      regionId: null | string;
+      schemeName: string;
+      version: string;
+    };
     policyType: null | string;
     progress: number;
     projectId: string;

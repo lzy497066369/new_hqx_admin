@@ -2,6 +2,7 @@
 import type { EnterpriseWorkspaceMaterialRecord } from '#/api';
 
 import { shallowRef } from 'vue';
+import { useRouter } from 'vue-router';
 
 import { Button } from 'antdv-next';
 import { Download, IconifyIcon } from '@vben/icons';
@@ -21,6 +22,7 @@ interface Props {
 
 const props = defineProps<Props>();
 const emit = defineEmits<{ imported: [record: EnterpriseWorkspaceMaterialRecord] }>();
+const router = useRouter();
 const importing = shallowRef(false);
 const config = getMaterialTemplateConfig(props.templateId);
 
@@ -52,7 +54,25 @@ async function importTemplate(event: Event) {
       file,
     );
     emit('imported', record);
-    showActionSuccess(record.status === 'valid' ? '资料已导入' : '资料已解析，请查看导入记录');
+    if (record.status === 'valid') {
+      showActionSuccess('资料已导入');
+      return;
+    }
+
+    await router.push({
+      path: '/enterprise-material-ledger/materials',
+      query: {
+        enterpriseId: props.enterpriseId,
+        materialId: record.id,
+      },
+    });
+    showActionFailure(
+      new Error(
+        record.status === 'partial'
+          ? '资料部分导入成功，请处理错误明细后重新导入。'
+          : '资料未导入，请处理错误明细后重新导入。',
+      ),
+    );
   } catch (error) {
     showActionFailure(error);
   } finally {

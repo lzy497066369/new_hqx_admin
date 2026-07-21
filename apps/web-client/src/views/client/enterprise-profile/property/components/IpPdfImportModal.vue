@@ -163,7 +163,7 @@ async function uploadFiles(files: File[]) {
   uploading.value = true;
   try {
     const result = await uploadClientIpRecognitionPdfsApi(pdfFiles);
-    message.success(`已生成 ${result.total} 条待审核识别草稿`);
+    message.success(`已上传 ${result.total} 个 PDF，识别任务正在后台处理。`);
     await trackIpRecognitionTask(result.taskId);
   } finally {
     uploading.value = false;

@@ -76,11 +76,12 @@ const projectHint = computed(() => {
   return `${project.value.matchedPolicyCount} 条政策命中 · ${regions}`;
 });
 
-const canCreateDeclaration = computed(
-  () => Boolean(project.value) &&
-    project.value?.scheme?.qualification.status !== 'ineligible' &&
-    (!hasMultipleRegions.value || Boolean(selectedRegionId.value)),
-);
+const canCreateDeclaration = computed(() => {
+  const scheme = project.value?.scheme;
+  return Boolean(project.value) &&
+    scheme?.qualification.status !== 'ineligible' &&
+    (!hasMultipleRegions.value || Boolean(selectedRegionId.value));
+});
 const showSchemeScore = computed(
   () => project.value?.scheme?.capabilities.score === true,
 );
@@ -302,7 +303,9 @@ watch([projectId, selectedRegionId], loadDetail, { immediate: true });
               placeholder="请选择实际申报地区"
             />
             <p>
-              企业资料不完整也可以先创建申报草稿，系统会在详情里继续诊断缺口。
+              {{ project.scheme
+                ? '企业资料不完整也可以先创建申报草稿，系统会在详情里继续诊断缺口。'
+                : '当前地区尚未配置申报方案，可先创建草稿，待后台完成配置后在申报详情中同步应用。' }}
             </p>
             <Button
               block

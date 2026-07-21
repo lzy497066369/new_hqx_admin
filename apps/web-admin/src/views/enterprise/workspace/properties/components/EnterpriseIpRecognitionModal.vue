@@ -133,8 +133,8 @@ async function uploadFiles(files: File[]) {
   uploading.value = true;
   try {
     const result = await uploadEnterpriseWorkspaceIpRecognitionPdfsApi(props.enterpriseId, pdfFiles);
-    message.success(`已生成 ${result.total} 条待审核识别草稿`);
-    await loadDrafts();
+    message.success(`已上传 ${result.total} 个 PDF，识别任务已在后台创建，可关闭窗口后继续处理其他工作。`);
+    open.value = false;
   } finally {
     uploading.value = false;
   }

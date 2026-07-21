@@ -24,6 +24,8 @@ type PresetRefs = Record<DeclarationPresetType, DeclarationPresetItem[]>;
 
 type SchemeFormState = {
   capabilities: Record<string, boolean>;
+  effectiveEndDate?: string;
+  effectiveStartDate?: string;
   flowPresetId?: string;
   materialPresetId?: string;
   qualificationPresetId?: string;
@@ -100,6 +102,8 @@ function editScheme(item: Awaited<ReturnType<typeof getDeclarationSchemesApi>>[n
   editingId.value = item.id;
   Object.assign(form, {
     capabilities: { ...item.capabilities },
+    effectiveEndDate: item.effectiveEndDate ?? undefined,
+    effectiveStartDate: item.effectiveStartDate ?? undefined,
     flowPresetId: item.flowPresetId ?? undefined,
     materialPresetId: item.materialPresetId ?? undefined,
     qualificationPresetId: item.qualificationPresetId ?? undefined,
@@ -114,6 +118,8 @@ function createVersion(item: Awaited<ReturnType<typeof getDeclarationSchemesApi>
   editingId.value = undefined;
   Object.assign(form, {
     capabilities: { ...item.capabilities },
+    effectiveEndDate: item.effectiveEndDate ?? undefined,
+    effectiveStartDate: item.effectiveStartDate ?? undefined,
     flowPresetId: item.flowPresetId ?? undefined,
     materialPresetId: item.materialPresetId ?? undefined,
     qualificationPresetId: item.qualificationPresetId ?? undefined,
@@ -160,6 +166,8 @@ function toPayload(): DeclarationSchemeForm {
   if (missing) throw new Error(`请选择${missing[1]}`);
   return {
     capabilities: { ...form.capabilities },
+    effectiveEndDate: form.effectiveEndDate || null,
+    effectiveStartDate: form.effectiveStartDate || null,
     flowPresetId: form.flowPresetId,
     materialPresetId: form.materialPresetId,
     qualificationPresetId: form.qualificationPresetId,
@@ -201,7 +209,8 @@ function nextVersion(value: string): string {
   return match ? `v${Number(match[1]) + 1}` : `${value}-next`;
 }
 
-function updateGaoxinScoreCapability(enabled: boolean) {
+function updateGaoxinScoreCapability(value: unknown) {
+  const enabled = value === true;
   form.capabilities.gaoxinScore = enabled;
   if (!enabled) form.capabilities.exportPackage = false;
 }
@@ -228,6 +237,8 @@ function updateGaoxinScoreCapability(enabled: boolean) {
       <Input v-model:value="form.schemeName" placeholder="地区申报方案名称" />
       <Input v-model:value="form.version" placeholder="版本，例如 v1" />
       <Select v-model:value="form.regionId" :options="regionOptions" class="md:col-span-2" placeholder="适用地区" />
+      <Input v-model:value="form.effectiveStartDate" type="date" />
+      <Input v-model:value="form.effectiveEndDate" type="date" />
     </div>
 
     <div class="grid gap-3 border-y border-gray-100 py-4 md:grid-cols-2">

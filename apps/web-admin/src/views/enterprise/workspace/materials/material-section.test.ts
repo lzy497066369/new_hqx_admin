@@ -10,9 +10,10 @@ import {
 import { materialArchiveTabs } from './material-content-tabs';
 
 describe('material section configuration', () => {
-  it('keeps business material pages in the ledger while excluding the template center', () => {
+  it('keeps business material pages and import records in the ledger', () => {
     expect(materialSectionKeys).toEqual([
       'company',
+      'materials',
       'basic',
       'finance',
       'employee',
@@ -28,6 +29,7 @@ describe('material section configuration', () => {
   it('keeps the client directory labels in readable Chinese', () => {
     expect(materialSections.map((item) => item.title)).toEqual([
       '公司资料',
+      '导入记录',
       '企业基础档案',
       '财税',
       '员工',
@@ -52,6 +54,7 @@ describe('material section configuration', () => {
     expect(getMaterialSectionConfig('account').view).toBe('accounts');
     expect(getMaterialSectionConfig('certificate').view).toBe('certificates');
     expect(getMaterialSectionConfig('photo').view).toBe('photos');
+    expect(getMaterialSectionConfig('materials').view).toBe('templates');
   });
 
   it('keeps both client contract tabs available in the ledger', () => {
@@ -85,6 +88,6 @@ describe('material section configuration', () => {
   it('redirects the legacy contacts route to the basic profile section', () => {
     expect(resolveMaterialLedgerSection('contacts')).toBe('basic');
     expect(resolveMaterialLedgerSection(undefined, 'EnterpriseMaterialContacts')).toBe('basic');
-    expect(resolveMaterialLedgerSection('materials')).toBe('basic');
+    expect(resolveMaterialLedgerSection('materials')).toBe('materials');
   });
 });

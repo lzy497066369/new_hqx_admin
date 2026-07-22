@@ -18,7 +18,6 @@ const emit = defineEmits<{
   detail: [EnterpriseProfileItem];
   declarations: [EnterpriseProfileItem];
   edit: [EnterpriseProfileItem];
-  materialLedger: [EnterpriseProfileItem];
   workspace: [EnterpriseProfileItem];
 }>();
 </script>
@@ -38,7 +37,6 @@ const emit = defineEmits<{
         @detail="emit('detail', $event)"
         @declarations="emit('declarations', $event)"
         @edit="emit('edit', $event)"
-        @material-ledger="emit('materialLedger', $event)"
         @workspace="emit('workspace', $event)"
       />
     </div>

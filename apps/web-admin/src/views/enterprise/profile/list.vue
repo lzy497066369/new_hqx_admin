@@ -105,14 +105,6 @@ async function openWorkspace(row: EnterpriseProfileItem) {
   });
 }
 
-async function openMaterialLedger(row: EnterpriseProfileItem) {
-  enterpriseContextStore.setCurrentEnterprise({ id: row.id, name: row.name });
-  await router.push({
-    name: 'EnterpriseMaterialSection',
-    params: { section: 'company' },
-  });
-}
-
 async function openDeclarations(row: EnterpriseProfileItem) {
   enterpriseContextStore.setCurrentEnterprise({ id: row.id, name: row.name });
   await router.push({
@@ -182,7 +174,6 @@ onMounted(() => {
         @detail="openDetail"
         @declarations="openDeclarations"
         @edit="openEdit"
-        @material-ledger="openMaterialLedger"
         @workspace="openWorkspace"
       />
     </div>

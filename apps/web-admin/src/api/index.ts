@@ -1,5 +1,6 @@
 export * from './ai';
 export * from './client';
+export * from './crm-sync';
 export * from './core';
 export * from './dashboard';
 export * from './enterprise';

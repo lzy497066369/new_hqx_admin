@@ -9,7 +9,6 @@ const emit = defineEmits<{
   detail: [EnterpriseProfileItem];
   declarations: [EnterpriseProfileItem];
   edit: [EnterpriseProfileItem];
-  materialLedger: [EnterpriseProfileItem];
   workspace: [EnterpriseProfileItem];
 }>();
 
@@ -56,12 +55,20 @@ const profileStatusLabels: Record<string, string> = {
           props.item.profileStatus
         }}</Tag>
       </div>
+      <div class="enterprise-card__meta enterprise-card__declarations">
+        <span>关联申报项目</span>
+        <div v-if="props.item.declarationProjects.length" class="enterprise-card__project-list">
+          <Tag v-for="project in props.item.declarationProjects" :key="project" color="purple">
+            {{ project }}
+          </Tag>
+        </div>
+        <strong v-else>-</strong>
+      </div>
     </div>
     <div class="enterprise-card__actions">
       <Button size="small" type="primary" @click="emit('workspace', props.item)"
         >服务中心</Button
       >
-      <Button size="small" @click="emit('materialLedger', props.item)">材料台账</Button>
       <Button size="small" @click="emit('declarations', props.item)">申报管理</Button>
       <Button size="small" @click="emit('detail', props.item)">详情</Button>
       <Button size="small" @click="emit('edit', props.item)">编辑</Button>
@@ -106,6 +113,16 @@ const profileStatusLabels: Record<string, string> = {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.enterprise-card__declarations > span {
+  padding-top: 2px;
+}
+
+.enterprise-card__project-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
 }
 
 .enterprise-card__actions {

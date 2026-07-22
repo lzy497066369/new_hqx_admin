@@ -10,6 +10,7 @@ export interface EnterpriseProfileItem {
   contactPhone?: null | string;
   createTime?: string;
   creditCode: string;
+  declarationProjects: string[];
   district?: null | string;
   enterpriseType?: null | string;
   id: string;
@@ -27,7 +28,7 @@ export interface EnterpriseProfileItem {
 
 export type EnterpriseProfileForm = Omit<
   EnterpriseProfileItem,
-  'createTime' | 'id' | 'updateTime'
+  'createTime' | 'declarationProjects' | 'id' | 'updateTime'
 >;
 
 async function getEnterpriseProfilesApi(params: Recordable<any>) {

@@ -124,6 +124,26 @@ const routes: RouteRecordRaw[] = [
       },
     ],
   },
+  {
+    meta: { authCode: 'Crm:Sync:List', icon: 'lucide:refresh-cw', order: 153, title: 'CRM同步' },
+    name: 'CrmSync',
+    path: '/crm-sync',
+    redirect: '/crm-sync/contracts',
+    children: [
+      {
+        component: () => import('#/views/crm-sync/contract-records/index.vue'),
+        meta: { authCode: 'Crm:Sync:List', icon: 'lucide:file-text', title: '合同同步记录' },
+        name: 'CrmContractSyncRecord',
+        path: 'contracts',
+      },
+      {
+        component: () => import('#/views/crm-sync/execution-order-records/index.vue'),
+        meta: { authCode: 'Crm:Sync:List', icon: 'lucide:clipboard-list', title: '执行单同步记录' },
+        name: 'CrmExecutionOrderSyncRecord',
+        path: 'execution-orders',
+      },
+    ],
+  },
   ...workspaceRoutes,
 ];
 

@@ -9,10 +9,12 @@ const source = readFileSync(
 );
 
 describe('enterprise card actions', () => {
-  it('provides direct material ledger and declaration management entry points', () => {
-    expect(source).toContain('materialLedger: [EnterpriseProfileItem]');
+  it('provides declaration management and displays related declaration projects', () => {
     expect(source).toContain('declarations: [EnterpriseProfileItem]');
-    expect(source).toContain("emit('materialLedger', props.item)");
     expect(source).toContain("emit('declarations', props.item)");
+    expect(source).toContain('关联申报项目');
+    expect(source).toContain('props.item.declarationProjects');
+    expect(source).not.toContain('materialLedger: [EnterpriseProfileItem]');
+    expect(source).not.toContain("emit('materialLedger', props.item)");
   });
 });

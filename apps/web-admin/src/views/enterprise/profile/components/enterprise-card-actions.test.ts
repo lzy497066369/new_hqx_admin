@@ -16,5 +16,8 @@ describe('enterprise card actions', () => {
     expect(source).toContain('props.item.declarationProjects');
     expect(source).not.toContain('materialLedger: [EnterpriseProfileItem]');
     expect(source).not.toContain("emit('materialLedger', props.item)");
+    expect(source).not.toContain('workspace: [EnterpriseProfileItem]');
+    expect(source).not.toContain("emit('workspace', props.item)");
+    expect(source).not.toContain('>服务中心</Button');
   });
 });

@@ -18,7 +18,6 @@ const emit = defineEmits<{
   detail: [EnterpriseProfileItem];
   declarations: [EnterpriseProfileItem];
   edit: [EnterpriseProfileItem];
-  workspace: [EnterpriseProfileItem];
 }>();
 </script>
 
@@ -37,7 +36,6 @@ const emit = defineEmits<{
         @detail="emit('detail', $event)"
         @declarations="emit('declarations', $event)"
         @edit="emit('edit', $event)"
-        @workspace="emit('workspace', $event)"
       />
     </div>
     <div v-if="props.total" class="enterprise-card-list__pagination">

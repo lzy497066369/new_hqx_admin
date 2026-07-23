@@ -9,7 +9,6 @@ const emit = defineEmits<{
   detail: [EnterpriseProfileItem];
   declarations: [EnterpriseProfileItem];
   edit: [EnterpriseProfileItem];
-  workspace: [EnterpriseProfileItem];
 }>();
 
 const profileStatusLabels: Record<string, string> = {
@@ -66,9 +65,6 @@ const profileStatusLabels: Record<string, string> = {
       </div>
     </div>
     <div class="enterprise-card__actions">
-      <Button size="small" type="primary" @click="emit('workspace', props.item)"
-        >服务中心</Button
-      >
       <Button size="small" @click="emit('declarations', props.item)">申报管理</Button>
       <Button size="small" @click="emit('detail', props.item)">详情</Button>
       <Button size="small" @click="emit('edit', props.item)">编辑</Button>

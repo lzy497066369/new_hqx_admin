@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { computed } from 'vue';
+
 import {
   Empty,
   Tag,
@@ -14,6 +16,17 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+
+const activeNodeCount = computed(
+  () => props.flow?.auditNodes.filter((node) => node.status === 'current').length ?? 0,
+);
+
+const nodeSectionDescription = computed(() => {
+  if (activeNodeCount.value > 1) {
+    return `当前有 ${activeNodeCount.value} 个节点同时进行中。`;
+  }
+  return '当前申报从草稿、提交到审核归档的节点状态。';
+});
 
 const eventMetaMap: Record<
   ClientDeclarationApi.DeclarationFlowEventType,
@@ -50,7 +63,7 @@ function formatArray(values: string[]) {
         <div class="declaration-flow-panel__section-head">
           <div>
             <h3>审核节点</h3>
-            <p>当前申报从草稿、提交到审核归档的节点状态。</p>
+            <p>{{ nodeSectionDescription }}</p>
           </div>
         </div>
         <div class="declaration-flow-panel__nodes">

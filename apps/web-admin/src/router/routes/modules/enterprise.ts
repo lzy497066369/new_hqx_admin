@@ -142,6 +142,12 @@ const routes: RouteRecordRaw[] = [
         name: 'CrmExecutionOrderSyncRecord',
         path: 'execution-orders',
       },
+      {
+        component: () => import('#/views/crm-sync/integration-security/index.vue'),
+        meta: { authCode: 'Crm:Integration:Manage', icon: 'lucide:shield-check', title: '安全集成' },
+        name: 'CrmIntegrationSecurity',
+        path: 'security',
+      },
     ],
   },
   ...workspaceRoutes,
